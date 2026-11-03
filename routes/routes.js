@@ -1,24 +1,23 @@
 const express = require('express')
-const createBook = require('../controllers/controller')
+const controlBook = require('../controllers/controller');
 const router = express.Router()
 
-// Útválasztások
-router.post('/', createBook.createMember)
-router.get('/', (req, res)=>{
-    res.send('Get API')
-})
+// POST
+router.post('/', controlBook.createBook)
 
-router.get('/:id', (req, res)=>{
-    res.send('GET API')
-})
+// GET ALL
+router.get('/', controlBook.getBooks)
 
-router.delete('/:id', (req, res)=>{
-    res.send('Delete API')
-})
+// GET BY ID
+router.get('/:id', controlBook.getBookById)
 
-router.patch('/:id', (req, res)=>{
-    res.send('Patch API')
-})
+// PATCH
+router.patch('/:id', controlBook.updateBook)
 
+// PUT
+router.post('/', controlBook.overrideBook)
+
+// DELETE
+router.delete('/:id', controlBook.deleteBook)
 
 module.exports = router
