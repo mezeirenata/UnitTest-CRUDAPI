@@ -19,6 +19,7 @@ module.exports.getBooks = async (req,res)=> {
         if (!books){
             return res.status(404).json({ message: "A gyűjtemény nem található" });
         }
+        res.status(200).json(books);
     }
     catch(error){
         console.log(error);
@@ -36,7 +37,7 @@ module.exports.getBookById = async (req, res) => {
             return res.status(404).json({ message: "Könyv nem található " });
         }
 
-        res.status(200).json(member);
+        res.status(200).json(book);
     }
     catch (error) {
         console.log(error);

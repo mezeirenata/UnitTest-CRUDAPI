@@ -3,21 +3,21 @@ const controlBook = require('../controllers/controller');
 const router = express.Router()
 
 // POST
-router.post('/', controlBook.createBook)
+router.post('/books', controlBook.createBook)
 
 // GET ALL
-router.get('/', controlBook.getBooks)
+router.get('/books', controlBook.getBooks)
 
 // GET BY ID
-router.get('/:id', controlBook.getBookById)
+router.get('/books/:id', controlBook.getBookById)
 
 // PATCH
-router.patch('/:id', controlBook.updateBook)
+router.patch('/books/:id', controlBook.updateBook)
 
 // PUT
-router.post('/', controlBook.overrideBook)
+router.put('/books/:id', controlBook.overrideBook)
 
 // DELETE
-router.delete('/:id', controlBook.deleteBook)
+router.delete('/books/:id', controlBook.deleteBook)
 
 module.exports = router
