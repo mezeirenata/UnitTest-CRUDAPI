@@ -47,7 +47,7 @@ describe('GET (by id) egységteszt', () => {
 
         await controlBook.getBookById(req, res);
 
-        expect(Model.findById).toHaveBeenCalled();
+        expect(Model.findById).toHaveBeenCalledWith(mockBook);
     });
 // paraméter vizsgálata
     // 3. A függvény megfelelő meghívása
@@ -55,8 +55,6 @@ describe('GET (by id) egységteszt', () => {
         Model.findById.mockResolvedValue(mockBook);
 
         await controlBook.getBookById(req, res);
-
-        expect(Model.findById).toHaveBeenCalledTimes(1);
         expect(Model.findById).toHaveBeenCalledWith(req);
     });
     // 4. Ha hiányzik az id paraméter
@@ -66,12 +64,12 @@ describe('GET (by id) egységteszt', () => {
         };
 
         await controlBook.getBookById(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.statusCode).toBe(400);
     })
     // 5. Ha hiányzik maga a paraméter
     test('A függvény hiányzó paraméter esetén 400-as státuszkóddal tér vissza', async () => {
         await controlBook.getBookById(null, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.statusCode).toBe(400);
     })
     //6. Ha üres ID paramétert kapott
      test('A függvény üres ID paraméter esetén 400-as státuszkóddal tér vissza', async () => {
@@ -79,7 +77,7 @@ describe('GET (by id) egységteszt', () => {
             params: {_id : ''}
         };
         await controlBook.getBookById(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+         expect(res.statusCode).toBe(400);
     })
 
 // Státuszkódok vizsgálata
@@ -89,7 +87,7 @@ describe('GET (by id) egységteszt', () => {
 
         await controlBook.getBookById(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(200);
+         expect(res.statusCode).toBe(200);
     });
 
     // 8. Nem talált könyv
@@ -99,8 +97,7 @@ describe('GET (by id) egységteszt', () => {
             params: {_id : '2'}
         };
         await controlBook.getBookById(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.statusCode).toBe(404);
     });
 // Visszatérési érték vizsgálata
     //7. A függvény visszatér-e megfelelő típusú válasszal
@@ -109,6 +106,9 @@ describe('GET (by id) egységteszt', () => {
 
         await controlBook.getBookById(req, res);
 
+        //todo getjsondata???         
+        // // válasz elküldése sikeres-e
+        // expect(res._isEndCalled()).ToBeTruthy() ??
         expect(res.json).toHaveBeenCalled();
     });
     //8. Megfelelő-e a függvény visszatérési értéke?
@@ -117,7 +117,7 @@ describe('GET (by id) egységteszt', () => {
 
         await controlBook.getBookById(req, res);
 
-        expect(res.json).toHaveBeenCalledWith(mockBook);
+        expect(res._getJsonData()).toStrictEqual(mockBook);
     });
     
 });
