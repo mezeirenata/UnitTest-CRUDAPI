@@ -22,7 +22,7 @@ describe('GET (by id) egységteszt', () => {
 
     // req megszabása, res mockolása
     const req = {
-        params: { _id: '1' }
+        params: { id: '1' }
     };
 
     let res;
@@ -42,83 +42,81 @@ describe('GET (by id) egységteszt', () => {
     });
 
     // 2. Meghívható-e a függvény?
-    test('A függvény meghívható', async () => {
+    test('A függvény meghívható a megfelelő paraméterrel', async () => {
         Model.findById.mockResolvedValue(mockBook);
 
         await controlBook.getBookById(req, res);
 
-        expect(Model.findById).toHaveBeenCalledWith(mockBook);
+        expect(Model.findById).toHaveBeenCalledWith('1');
     });
 // paraméter vizsgálata
-    // 3. A függvény megfelelő meghívása
-    test('A függvény meg lett hívva a megadott paraméterrel', async () => {
-        Model.findById.mockResolvedValue(mockBook);
-
-        await controlBook.getBookById(req, res);
-        expect(Model.findById).toHaveBeenCalledWith(req);
-    });
-    // 4. Ha hiányzik az id paraméter
+    // 3. Ha hiányzik az id paraméter
     test('A függvény hiányzó ID paraméter esetén 400-as státuszkóddal tér vissza', async () => {
         const req = {
             params: {}
         };
 
         await controlBook.getBookById(req, res);
-        expect(res.statusCode).toBe(400);
+        expect(res.status).toHaveBeenCalledWith(400);
     })
-    // 5. Ha hiányzik maga a paraméter
+    // 4. Ha hiányzik maga a paraméter
     test('A függvény hiányzó paraméter esetén 400-as státuszkóddal tér vissza', async () => {
         await controlBook.getBookById(null, res);
-        expect(res.statusCode).toBe(400);
+        expect(res.status).toHaveBeenCalledWith(400);
     })
-    //6. Ha üres ID paramétert kapott
+    //5. Ha üres ID paramétert kapott
      test('A függvény üres ID paraméter esetén 400-as státuszkóddal tér vissza', async () => {
         const req = {
-            params: {_id : ''}
+            params: {id : ''}
         };
         await controlBook.getBookById(req, res);
-         expect(res.statusCode).toBe(400);
+        expect(res.status).toHaveBeenCalledWith(400);
     })
 
 // Státuszkódok vizsgálata
-    // 7. Sikeres visszatéréskor megfelelő-e a státuszkód?
+    // 6. Sikeres visszatéréskor megfelelő-e a státuszkód?
     test('A függvény 200-as státuszkóddal tér vissza, amikor sikerül megtalálnia a könyvet', async () => {
         Model.findById.mockResolvedValue(mockBook);
 
         await controlBook.getBookById(req, res);
 
-         expect(res.statusCode).toBe(200);
+        expect(res.status).toHaveBeenCalledWith(200);
     });
 
-    // 8. Nem talált könyv
-    test('A függvény 404-es státuszkóddal tér vissza, ha nem sikerül megtalálnia a könyvet a megadott id alapján', async () => {
+    // 7. Nem talált könyv
+    test('A függvény 404-es státuszkóddal tér vissza, ha nem sikerül megtalálnia a könyvet a megadott azonosító alapján', async () => {
         Model.findById.mockResolvedValue(null);
         const req = {
-            params: {_id : '2'}
+            params: {id : '2'}
         };
         await controlBook.getBookById(req, res);
-        expect(res.statusCode).toBe(404);
+        expect(res.status).toHaveBeenCalledWith(404);
     });
 // Visszatérési érték vizsgálata
-    //7. A függvény visszatér-e megfelelő típusú válasszal
+    //8. A függvény meghívja-e JSON küldést?
     test('A függvény visszaad adatot a válaszban sikeres találatkor', async () => {
         Model.findById.mockResolvedValue(mockBook);
 
         await controlBook.getBookById(req, res);
 
-        //todo getjsondata???         
-        // // válasz elküldése sikeres-e
-        // expect(res._isEndCalled()).ToBeTruthy() ??
         expect(res.json).toHaveBeenCalled();
     });
-    //8. Megfelelő-e a függvény visszatérési értéke?
+    //9. Megfelelő-e a függvény visszatérési értéke?
     test('A függvény visszatér a helyes keresett könyvvel', async () => {
         Model.findById.mockResolvedValue(mockBook);
 
         await controlBook.getBookById(req, res);
 
-        expect(res._getJsonData()).toStrictEqual(mockBook);
+        expect(res.json).toHaveBeenCalledWith(mockBook);
     });
-    
+// Adatbázishiba
+    //10.
+    test('A függvény 500-as státuszkódot ad adatbázishiba esetén', async () => {
+        Model.findById.mockRejectedValue(new Error('Database error'));
+
+        await controlBook.getBookById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+    });
 });
 
