@@ -1,17 +1,54 @@
 const Model = require('../models/model')
 
 /// POST
-module.exports.createBook = async (req, res)=>{
-    try{
-        // req. body validálás: jó típusú változók, meg vane adva mindegyik változó, ha üres a request, ha nem kapott requestet mint paraméter
-        const newBook = await Model.create(req.body)
-        res.status(201).json(newBook)
+module.exports.createBook = async (req, res) => {
+    try {
+        if (!req) {
+            return res.status(400).json({ message: "Hiányzó paraméter" });
+        }
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ message: "Hiányzó tartalom" });
+        }
+
+        // Kötelező mezők
+        const requiredFields = [
+            'nev',
+            'szerzo_neve',
+            'mufaj',
+            'keletkezes_eve'
+        ];
+
+        const missingFields = requiredFields.filter(
+            field => req.body[field] === undefined
+        );
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: "Hiányzó mezők",
+                missingFields
+            });
+        }
+
+        // Új könyv létrehozása
+        const uploadedBook = await Model.create(req.body);
+
+        return res.status(201).json(uploadedBook);
     }
-    catch(error){
-        console.log(error);
-        res.status(500);
+    catch (error) {
+        if (
+            error.name === 'ValidationError' ||
+            error.name === 'CastError'
+        ) {
+            return res.status(400).json({
+                message: "Hibás adatok!",
+                error: error.message
+            });
+        }
+
+        return res.status(500).json({ message: "Szerver hiba" });
     }
-}
+};
 
 /// GET ALL
 module.exports.getBooks = async(res)=> {
@@ -23,27 +60,28 @@ module.exports.getBooks = async(res)=> {
         res.status(200).json(books);
     }
     catch(error){
-        console.log(error);
+        // console.log(error);
+
         res.status(500);
     }
 }
-
 
 /// GET BY ID
 module.exports.getBookById = async (req, res) => {
     try {
         if (!req) return res.status(400).json({message: "Hiányzó paraméter"})
-        if (!req.params || !req.params.id) return res.status(400).json({message: "Hiányzó ID paraméter"})
-        if (req.params.id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
+        if (!req.params || req.params._id === undefined || req.params._id === null) return res.status(400).json({message: "Hiányzó ID paraméter"})
+        if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
 
-        const book = await Model.findById(req.params.id);
+        const book = await Model.findById(req.params._id);
         if (!book) {
             return res.status(404).json({ message: "Könyv nem található a megadott azonosító alapján" });
         }
         res.status(200).json(book);
     }
     catch (error) {
-        console.log(error);
+        // console.log(error);
+
         res.status(500).json({ message: "Szerver hiba" });
     }
 }
@@ -52,39 +90,17 @@ module.exports.getBookById = async (req, res) => {
 module.exports.updateBook = async (req, res) => {
     try {
         if (!req) return res.status(400).json({message: "Hiányzó paraméter"})
-        if (!req.params || !req.params.id) return res.status(400).json({message: "Hiányzó ID paraméter"})
-        if (req.params.id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
-        /// todo: req.body validálás
+        if (!req.params || req.params._id === undefined || req.params._id === null) return res.status(400).json({message: "Hiányzó ID paraméter"})
+        if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
+    ///  req.body validálás
+        if (!req.body || Object.keys(req.body).length == 0) return res.status(400).json({message: "Hiányzó tartalom"})
         
         const updatedBook = await Model.findByIdAndUpdate(
-            req.params.id,
+            req.params._id,
             req.body,
-            { new: true }
-        );
-
-        if (!updatedBook) {
-            return res.status(404).json({ message: "Könyv nem található" });
-        }
-
-        res.status(200).json(updatedBook);
-    }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "Szerver hiba" });
-    }
-}
-
-/// PUT felülírja az egész könyvet, aminek az azonosítója megegyezik
-module.exports.overrideBook = async(req,res) => {
-    try{
-        if (!req) return res.status(400).json({message: "Hiányzó paraméter"})
-        if (!req.params || !req.params.id) return res.status(400).json({message: "Hiányzó ID paraméter"})
-        if (req.params.id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
-        // todo: req.body validálás
-        const updatedBook = await Model.findOneAndReplace(
-            { _id: req.params.id },
-            req.body,
-            { new: true }
+            { returnDocument: 'after',
+            runValidators:true
+            }
         );
 
         if (!updatedBook) {
@@ -93,8 +109,69 @@ module.exports.overrideBook = async(req,res) => {
 
         res.status(200).json(updatedBook);
     }
+    catch (error) {
+        if (error.name === 'ValidationError' || error.name === 'CastError'){
+            return res.status(400).json({
+            message: "Hibás adatok!",
+            error: error.message
+        });
+        }
+
+        res.status(500).json({ message: "Szerver hiba" });
+    }
+}
+
+/// PUT felülírja az egész könyvet, aminek az azonosítója megegyezik
+module.exports.overrideBook = async(req,res) => {
+    try{
+        if (!req) return res.status(400).json({message: "Hiányzó paraméter"})
+        if (!req.params || req.params._id === undefined || req.params._id === null) return res.status(400).json({message: "Hiányzó ID paraméter"})
+        if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
+    // req.body validálás
+        if (!req.body || Object.keys(req.body).length == 0) return res.status(400).json({message: "Hiányzó tartalom"})
+
+    // Kötelező mezők
+        const requiredFields = [
+            'nev',
+            'szerzo_neve',
+            'mufaj',
+            'keletkezes_eve'
+        ];
+
+        // Hiányzó mezők ellenőrzése
+        const missingFields = requiredFields.filter(
+            field => req.body[field] === undefined
+        );
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: "Hiányzó mezők",
+                missingFields
+            });
+        }
+
+        const updatedBook = await Model.findOneAndReplace(
+            { _id: req.params._id },
+            req.body,
+            { returnDocument: 'after',
+                runValidators:true
+            }
+        ); 
+
+        if (!updatedBook) {
+            return res.status(404).json({ message: "Könyv nem található a megadott azonosító alapján" });
+        }
+
+        res.status(200).json(updatedBook);
+    }
     catch(error){
-        console.log(error);
+        if (error.name === 'ValidationError' || error.name === 'CastError'){
+            return res.status(400).json({
+            message: "Hibás adatok!",
+            error: error.message
+        });
+        }
+
         res.status(500).json({ message: "Szerver hiba" });
     }
 }
@@ -103,17 +180,18 @@ module.exports.overrideBook = async(req,res) => {
 module.exports.deleteBook = async(req,res) => {
     try{
         if (!req) return res.status(400).json({message: "Hiányzó paraméter"})
-        if (!req.params || !req.params.id) return res.status(400).json({message: "Hiányzó ID paraméter"})
-        if (req.params.id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
+        if (!req.params || req.params._id === undefined || req.params._id === null) return res.status(400).json({message: "Hiányzó ID paraméter"})
+        if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
 
-        const deletedBook = await Model.findByIdAndDelete(req.params.id);
+        const deletedBook = await Model.findByIdAndDelete(req.params._id);
         if(!deletedBook){
             return res.status(404).json({message: "Könyv nem található a megadott azonosító alapján"});
         }
         res.status(200).json({message: "Sikeres törlés"});
     }
     catch (error){
-        console.log(error);
+        // console.log(error);
+
         res.status(500).json({message: "Szerver hiba"});
     }
 }
