@@ -247,7 +247,7 @@ describe('PUT - könyv felülírásának egységtesztje', () => {
         await controlBook.overrideBook(req, res);
         expect(res.status).toHaveBeenCalledWith(400);
     } )
-    //9. Ha valamelyik mező hibás
+    //9.a Ha valamelyik mező hibás
     test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
         Model.findOneAndReplace.mockRejectedValue(
             new mongoose.Error.CastError(
@@ -263,6 +263,31 @@ describe('PUT - könyv felülírásának egységtesztje', () => {
                 szerzo_neve: 'Antoine de Saint-Exupéry',
                 mufaj: 'Regény',
                 keletkezes_eve: "nemszám",
+                rovid_leiras: 'Módosított leírás.'
+            }
+        };
+        await controlBook.overrideBook(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith( expect.objectContaining({
+        message: "Hibás adatok!"
+    }))
+    })
+    // 9.b Ha nem formátum hiba van hanem érték hiba
+    test('A függvény határontúli érték esetén 400-as státuszkóddal tér vissza', async() => {
+        Model.findOneAndReplace.mockRejectedValue(
+            new mongoose.Error.CastError(
+                'Number',
+                -1,
+                'keletkezes_eve'
+            )
+        );
+        const req = {
+            params: {_id : '1'},
+            body: {
+                nev: 'A kis herceg - módosított',
+                szerzo_neve: 'Antoine de Saint-Exupéry',
+                mufaj: 'Regény',
+                keletkezes_eve: -1,
                 rovid_leiras: 'Módosított leírás.'
             }
         };
@@ -414,7 +439,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({message: "Hiányzó tartalom"})
     })
-    //8. Ha valamelyik mező hibás
+    //8.a Ha valamelyik mező hibás (rossz formátum)
     test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
         Model.findByIdAndUpdate.mockRejectedValue(
             new mongoose.Error.CastError(
@@ -427,6 +452,27 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
             params: {_id : '1'},
             body: {
                 keletkezes_eve: "nemszám",
+            }
+        };
+        await controlBook.updateBook(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith( expect.objectContaining({
+        message: "Hibás adatok!"
+    }))
+    })
+    //8.b Ha valamelyik mező helytelen értéket kapott
+        test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
+        Model.findByIdAndUpdate.mockRejectedValue(
+            new mongoose.Error.CastError(
+                'Number',
+                -1,
+                'keletkezes_eve'
+            )
+        );
+        const req = {
+            params: {_id : '1'},
+            body: {
+                keletkezes_eve: -1,
             }
         };
         await controlBook.updateBook(req, res);
