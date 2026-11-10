@@ -1,5 +1,14 @@
 const Model = require('../models/model')
 
+const allowedFields = [
+    'nev',
+    'szerzo_neve',
+    'mufaj',
+    'keletkezes_eve',
+    'rovid_leiras'
+];
+
+
 /// POST
 module.exports.createBook = async (req, res) => {
     try {
@@ -9,6 +18,17 @@ module.exports.createBook = async (req, res) => {
 
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ message: "Hiányzó tartalom" });
+        }
+
+        const invalidFields = Object.keys(req.body).filter(
+        field => !allowedFields.includes(field)
+        );
+
+        if (invalidFields.length > 0) {
+            return res.status(400).json({
+                message: 'Nem létező mező!',
+                fields: invalidFields
+            });
         }
 
         // Kötelező mezők
@@ -62,7 +82,7 @@ module.exports.getBooks = async(res)=> {
     catch(error){
         // console.log(error);
 
-        res.status(500);
+        res.status(500).json({ message: "Szerver hiba" });;
     }
 }
 
@@ -94,6 +114,18 @@ module.exports.updateBook = async (req, res) => {
         if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
     ///  req.body validálás
         if (!req.body || Object.keys(req.body).length == 0) return res.status(400).json({message: "Hiányzó tartalom"})
+        
+        const invalidFields = Object.keys(req.body).filter(
+        field => !allowedFields.includes(field)
+        );
+
+        if (invalidFields.length > 0) {
+            return res.status(400).json({
+                message: 'Nem létező mező!',
+                fields: invalidFields
+            });
+        }
+
         
         const updatedBook = await Model.findByIdAndUpdate(
             req.params._id,
@@ -129,6 +161,17 @@ module.exports.overrideBook = async(req,res) => {
         if (req.params._id.trim() == '') return res.status(400).json({message: "Üres azonosító"})
     // req.body validálás
         if (!req.body || Object.keys(req.body).length == 0) return res.status(400).json({message: "Hiányzó tartalom"})
+    // rossz mező
+        const invalidFields = Object.keys(req.body).filter(
+        field => !allowedFields.includes(field)
+        );
+
+        if (invalidFields.length > 0) {
+            return res.status(400).json({
+                message: 'Nem létező mező!',
+                fields: invalidFields
+            });
+        }
 
     // Kötelező mezők
         const requiredFields = [

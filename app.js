@@ -1,4 +1,3 @@
-
 const express = require('express')
 const mongoose = require('mongoose')
 require('dotenv').config()
@@ -24,10 +23,5 @@ const app = express()
 app.use(express.json())
 app.use('/api',routes)
 
-app.get('/test', (req, res) => {
-    res.send('Express is working!');
-});
-
 app.listen(3000, console.log('A szerver elindult...'))
 
-/// extension name: Flashpost

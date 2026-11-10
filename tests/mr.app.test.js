@@ -236,7 +236,7 @@ describe('PUT - könyv felülírásának egységtesztje', () => {
             message: "Hiányzó tartalom"
         })
     }); 
-    //8. Ha hiányzik valamelyik mező
+    //8.a Ha hiányzik valamelyik mező
     test('A függvény hiányzó mező esetén 400-as státuszkóddal tér vissza', async () => {
         const req = {
             params: {_id : '1'},
@@ -246,6 +246,21 @@ describe('PUT - könyv felülírásának egységtesztje', () => {
         };
         await controlBook.overrideBook(req, res);
         expect(res.status).toHaveBeenCalledWith(400);
+    } )
+    //8.b Ha ismeretlen mezők vannak megadva
+      test('A függvény ismeretlen mező esetén 400-as státuszkóddal tér vissza', async () => {
+        const req = {
+            params: {_id : '1'},
+            body: {
+                 ...mockModifiedBook,
+                 ismeretlen : "a"
+            }
+        };
+        await controlBook.overrideBook(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith( expect.objectContaining({
+        message: "Nem létező mező!"
+    }))
     } )
     //9.a Ha valamelyik mező hibás
     test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
@@ -461,7 +476,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
     }))
     })
     //8.b Ha valamelyik mező helytelen értéket kapott
-        test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
+    test('A függvény hibás típusú és üres érték esetén 400-as státuszkóddal tér vissza', async() => {
         Model.findByIdAndUpdate.mockRejectedValue(
             new mongoose.Error.CastError(
                 'Number',
@@ -479,7 +494,21 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith( expect.objectContaining({
         message: "Hibás adatok!"
-    }))
+        }))
+    })
+    //8.c Ha ismeretlen  mezők vannak megadva
+      test('A függvény ismeretlen mező esetén 400-as státuszkóddal tér vissza', async () => {
+        const req = {
+            params: {_id : '1'},
+            body: {
+                 ismeretlen : "a"
+            }
+        };
+        await controlBook.overrideBook(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith( expect.objectContaining({
+            message: "Nem létező mező!"
+        }))
     })
 // Státuszkódok vizsgálata
     // 9. Sikeres visszatéréskor megfelelő-e a státuszkód?
@@ -489,7 +518,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         await controlBook.updateBook(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-    });
+    })
     // 10. Nem talált könyv
     test('A függvény 404-es státuszkóddal tér vissza, ha nem létezik az adott azonosítóval könyv', async () => {
         Model.findByIdAndUpdate.mockResolvedValue(null);
@@ -500,7 +529,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         await controlBook.updateBook(req, res);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({message: "Könyv nem található a megadott azonosító alapján"})
-    });
+    })
 // Visszatérési érték vizsgálata
     //11. Megfelelő mezőket módosítja?
     test('A függvény csak a megadott mezőket módosítja', async () => {
@@ -516,7 +545,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
             runValidators: true})
         );
         expect(res.json).toHaveBeenCalledWith(mockModifiedBook);
-    });
+    })
     //12. A függvény meghívja-e JSON küldést?
     test('A függvény visszaad adatot a válaszban sikeres találatkor', async () => {
         Model.findByIdAndUpdate.mockResolvedValue(mockModifiedBook);
@@ -524,7 +553,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         await controlBook.updateBook(req, res);
 
         expect(res.json).toHaveBeenCalled();
-    });
+    })
     //13. Megfelelő-e a függvény visszatérési értéke?
     test('A függvény visszatér helyesen a módosított könyvvel', async () => {
         Model.findByIdAndUpdate.mockResolvedValue(mockModifiedBook);
@@ -532,7 +561,7 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         await controlBook.updateBook(req, res);
 
         expect(res.json).toHaveBeenCalledWith(mockModifiedBook);
-    });
+    })
 // Adatbázishiba
     //14.
     test('A függvény 500-as státuszkódot ad adatbázishiba esetén', async () => {
@@ -541,5 +570,5 @@ describe('PATCH - könyv módosításának egységtesztje', () => {
         await controlBook.updateBook(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
-    });
+    })
 })
