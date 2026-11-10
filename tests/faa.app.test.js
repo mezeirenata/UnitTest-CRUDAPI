@@ -270,7 +270,7 @@ describe("POST books egységteszt", () => {
     );
   });
 
-  // 6.
+  // 6.a
   test("A createBook függvény visszaadja a 400-as státuszkódot, ha az egyik mező tartalma hibás típusú", async () => {
     const invalidReq = {
       body: {
@@ -294,7 +294,27 @@ describe("POST books egységteszt", () => {
       }),
     );
   });
+  // 6.b
+    test("A createBook függvény visszaadja a 400-as státuszkódot, ha az egyik mező ismeretlen", async () => {
+    const invalidReq = {
+      body: {
+        nev: "Silktouch in the wind",
+        szerzo_neve: "Stalingrad",
+        mufaj: "Krimi",
+        keletkezes_eve: 2000,
+        ismeretlen: "a"
+      },
+    };
 
+    await controller.createBook(invalidReq, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Nem létező mező!",
+      }),
+    );
+  });
   // 7 .
   test("A createBook függvény visszaadja a 500-as státuszkódot, ha az adatbázis kérés sikertelen", async () => {
     Model.create.mockRejectedValue(new Error("Database error"));
