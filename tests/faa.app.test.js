@@ -16,7 +16,7 @@ describe("GET books egységteszt", () => {
       szerzo_neve: "Author of Book",
     },
   ];
-  const req = {};
+  // const req = {};
 
   const res = {
     status: jest.fn().mockReturnThis(),
@@ -61,7 +61,7 @@ describe("GET books egységteszt", () => {
   });
 
   // 5.
-  test("A getBooks függvény sikeresen visszaadja a 404-es státuszkódot, ha nem található könyv", async () => {
+  test("A getBooks függvény sikeresen visszaadja a 404-es státuszkódot, ha a gyűjtemény nem található", async () => {
     Model.find.mockResolvedValue(null);
 
     await controller.getBooks(res);
